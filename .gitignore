@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+xkcd-image-bot
 
 # Test binary, build with `go test -c`
 *.test
