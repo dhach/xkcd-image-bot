@@ -1,15 +1,17 @@
 # xkcd-image-bot
 A program to post a random XKCD image to either Mattermost or Slack.
+
 Written for personal use and for learing Go.
 
 
 
 ## Usage
 You have to choose between posting to Mattermost or Slack. Both Apps need a webhook URL.
+
 You can pass the reguired arguments via command line flags:
 
 
-** Supported command line flags **
+**Supported command line flags**
 ```
 Usage:
   -channel string
@@ -27,9 +29,10 @@ Usage:
 ```
 
 
-** Example Usage: **
+**Example Usage:**
 ```
-./xkcd-image-bot -webhook-url https://my.private-mattermost.xyz/hooks/8t072k984xt7hjhjdahf  -mattermost -username xkcd-image-bot -channel test123456789
+./xkcd-image-bot -webhook-url https://my.private-mattermost.xyz/hooks/8t072k984xt7hjhjdahf\
+ -mattermost -username xkcd-image-bot -channel test123456789
 ```
 
 
