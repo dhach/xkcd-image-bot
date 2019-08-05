@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,10 +11,22 @@ import (
 	"github.com/imroc/req"
 )
 
+// custom struct for the Mattermost payload
+type JsonPayloadMattermost struct {
+	MattermostUsername string `json:"username"`
+	MattermostChannel  string `json:"channel"`
+	PostText           string `json:"text"`
+}
+
+// custom struct for the Slack payload
+type JsonPayloadSlack struct {
+	PostText string `json:"text"`
+}
+
 func main() {
 	// these are all command line flags we declare
 	// webhookURL is definitely required, as well as one of useSlack or useMattermost
-	// mattermostChannel and mattermostUsername are only needed if using mattermost, as slack does not support this feature
+	// mattermostChannel and mattermostUsername are only available if using mattermost, as slack does not support this feature
 	var help = flag.Bool("help", false, "print this help and exit")
 	var webhookURL = flag.String("webhook-url", "", "the URL of the webhook to post the image to")
 	var useSlack = flag.Bool("slack", false, "post to Slack")
@@ -24,12 +37,13 @@ func main() {
 	// parse all given flags and do some basic validity checks on them
 	flag.Parse()
 	if *help {
-		fmt.Println("Usage:\n")
+		fmt.Print("Usage:\n\n")
 		flag.PrintDefaults()
 		os.Exit(0)
 	}
 	CheckValidityOfFlags(*webhookURL, *useMattermost, *useSlack)
 
+	// get a random Image and then pass it along to be posted to the app of choice
 	imageURL := ParseXKCD()
 	PostToApp(imageURL, *webhookURL, *useMattermost, *mattermostChannel, *mattermostUsername)
 }
@@ -46,11 +60,11 @@ func CheckValidityOfFlags(webhookURL string, useMattermost bool, useSlack bool) 
 		isNotValid = true
 	}
 	// it does not make sense to post to Slack and Mattermost at the same time,
-	// or not at all
 	if useMattermost && useSlack {
 		fmt.Println("You cannot post to Mattermost and Slack at the same time!")
 		isNotValid = true
 	}
+	// ...or not at all
 	if !useMattermost && !useSlack {
 		fmt.Println("You must specify either -mattermost or -slack")
 		isNotValid = true
@@ -65,10 +79,12 @@ func CheckValidityOfFlags(webhookURL string, useMattermost bool, useSlack bool) 
 
 // ParseXKCD gets a random image from XKCD by calling the /random/comic endpoint and parsing the actual Image URL
 func ParseXKCD() string {
-	// the URL and endpoint are fixed
+	// the URL and endpoint are fixed for XKCD
 	response, err := req.Get("https://c.xkcd.com/random/comic/")
 	if err != nil {
-		fmt.Println("Something went wrong!")
+		fmt.Println("Something went wrong while getting the random comic!")
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	resp := response.String()
 
@@ -87,15 +103,18 @@ func BuildPayloadSlack(imgURL string) string {
 	imgURLString.WriteString(imgURL)
 	text := imgURLString.String()
 
-	// Manually building the JSON gets pretty ugly, but using encoding/json has thrown errors
-	// TODO: check encoding/json again and refactor code to use that module
-	var payloadStringBuilder strings.Builder
-	payloadStringBuilder.WriteString("{")
-	payloadStringBuilder.WriteString("\"text\": \"")
-	payloadStringBuilder.WriteString(text)
-	payloadStringBuilder.WriteString("\"}")
+	// Slack only needs text in its payload
+	slackPayload := JsonPayloadSlack{
+		PostText: text,
+	}
 
-	payload := payloadStringBuilder.String()
+	payloadJson, err := json.Marshal(slackPayload)
+	if err != nil {
+		fmt.Println("[E] Error marshalling payload!")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	payload := string(payloadJson)
 
 	return payload
 }
@@ -107,21 +126,17 @@ func BuildPayloadMattermost(imgURL string, channel string, username string) stri
 	text := imgURLString.String()
 
 	// Mattermost is specific in that it requires "usnername" and "channel" inside the payload
-	// Manually building the JSON gets pretty ugly, but using encoding/json has thrown errors
-	// TODO: check encoding/json again and refactor code to use that module
-	var payloadStringBuilder strings.Builder
-	payloadStringBuilder.WriteString("{")
-	payloadStringBuilder.WriteString("\"username\": \"")
-	payloadStringBuilder.WriteString(username)
-	payloadStringBuilder.WriteString("\",")
-	payloadStringBuilder.WriteString("\"channel\": \"")
-	payloadStringBuilder.WriteString(channel)
-	payloadStringBuilder.WriteString("\",")
-	payloadStringBuilder.WriteString("\"text\": \"")
-	payloadStringBuilder.WriteString(text)
-	payloadStringBuilder.WriteString("\"}")
+	mattermostPayload := JsonPayloadMattermost{
+		MattermostChannel:  channel,
+		MattermostUsername: username,
+		PostText:           text,
+	}
 
-	payload := payloadStringBuilder.String()
+	payloadJson, err := json.Marshal(mattermostPayload)
+	if err != nil {
+		fmt.Println("[E] Error marshalling payload!")
+	}
+	payload := string(payloadJson)
 
 	return payload
 }
@@ -130,21 +145,24 @@ func BuildPayloadMattermost(imgURL string, channel string, username string) stri
 func PostToApp(imgURL string, webhookURL string, useMattermost bool, mattermostUsername string, mattermostChannel string) {
 	var payload string = ""
 
+	// depending on the user's choice, we either build our payload for Mattermost or for Slack
 	if useMattermost {
 		payload = BuildPayloadMattermost(imgURL, mattermostUsername, mattermostChannel)
 	} else {
 		payload = BuildPayloadSlack(imgURL)
 	}
 
+	// set the appropriate header for posting to the API
 	header := req.Header{
 		"Accept": "application/json",
 	}
 
 	response, err := req.Post(webhookURL, header, payload)
 	if response != nil {
+		fmt.Print("[I] Response from server: ")
 		fmt.Println(response)
 	} else {
-		fmt.Println("There was an error:")
+		fmt.Println("[E] There was an error posting the payload:")
 		fmt.Println(err)
 	}
 }
