@@ -33,6 +33,7 @@ func main() {
 	var useMattermost = flag.Bool("mattermost", false, "post to Mattermost")
 	var mattermostChannel = flag.String("channel", "town-square", "(optional) which channel to post to; only available when using Mattermost")
 	var mattermostUsername = flag.String("username", "xkdc-image-bot", "(optional) which username to post as; only available when using Mattermost")
+	var customMessage = flag.String("message", "", "(optional) an additional message to post before the image")
 
 	// parse all given flags and do some basic validity checks on them
 	flag.Parse()
@@ -44,7 +45,7 @@ func main() {
 
 	// get a random Image and then pass it along to be posted to the app of choice
 	imageURL := ParseXKCD()
-	PostToApp(imageURL, *webhookURL, *useMattermost, *mattermostChannel, *mattermostUsername)
+	PostToApp(imageURL, *webhookURL, *useMattermost, *mattermostChannel, *mattermostUsername, *customMessage)
 }
 
 // CheckValidityOfFlags performs some basic validity checks on the user-provided input
@@ -94,10 +95,8 @@ func ParseXKCD() string {
 }
 
 // BuildPayloadSlack builds the payload specific for Slack
-func BuildPayloadSlack(imgURL string) string {
-	var imgURLString strings.Builder
-	imgURLString.WriteString(imgURL)
-	text := imgURLString.String()
+func BuildPayloadSlack(imgURL string, message string) string {
+	text := BuildMessageString(imgURL, message)
 
 	// Slack only needs text in its payload
 	slackPayload := JsonPayloadSlack{
@@ -114,10 +113,8 @@ func BuildPayloadSlack(imgURL string) string {
 }
 
 // BuildPayloadMattermost builds the payload specific for Mattermost
-func BuildPayloadMattermost(imgURL string, channel string, username string) string {
-	var imgURLString strings.Builder
-	imgURLString.WriteString(imgURL)
-	text := imgURLString.String()
+func BuildPayloadMattermost(imgURL string, channel string, username string, message string) string {
+	text := BuildMessageString(imgURL, message)
 
 	// Mattermost is specific in that it requires "usnername" and "channel" inside the payload
 	mattermostPayload := JsonPayloadMattermost{
@@ -135,6 +132,18 @@ func BuildPayloadMattermost(imgURL string, channel string, username string) stri
 	return payload
 }
 
+// BuildMessageString builds the string to post as the actual message
+func BuildMessageString(imgURL string, message string) string {
+	var text strings.Builder
+	if message != "" {
+		text.WriteString(message)
+		text.WriteString("\n")
+	}
+	text.WriteString(imgURL)
+
+	return text.String()
+}
+
 // PrintErrorAndExit takes a custom message and error, prints it and then exits the program
 func PrintErrorAndExit(customMessage string, errorMessage error) {
 	fmt.Println("[E] Error ", customMessage, ":")
@@ -143,14 +152,14 @@ func PrintErrorAndExit(customMessage string, errorMessage error) {
 }
 
 // PostToApp builds the payload with the image URL an posts it to the specified app
-func PostToApp(imgURL string, webhookURL string, useMattermost bool, mattermostUsername string, mattermostChannel string) {
+func PostToApp(imgURL string, webhookURL string, useMattermost bool, mattermostUsername string, mattermostChannel string, customMessage string) {
 	var payload string = ""
 
 	// depending on the user's choice, we either build our payload for Mattermost or for Slack
 	if useMattermost {
-		payload = BuildPayloadMattermost(imgURL, mattermostUsername, mattermostChannel)
+		payload = BuildPayloadMattermost(imgURL, mattermostUsername, mattermostChannel, customMessage)
 	} else {
-		payload = BuildPayloadSlack(imgURL)
+		payload = BuildPayloadSlack(imgURL, customMessage)
 	}
 
 	// set the appropriate header for posting to the API
