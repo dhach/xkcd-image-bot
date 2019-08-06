@@ -24,22 +24,21 @@ type JsonPayloadSlack struct {
 }
 
 func main() {
-	// these are all command line flags we declare
+	// these are all the command line flags we declare
 	// webhookURL is definitely required, as well as one of useSlack or useMattermost
 	// mattermostChannel and mattermostUsername are only available if using mattermost, as slack does not support this feature
 	var help = flag.Bool("help", false, "print this help and exit")
 	var webhookURL = flag.String("webhook-url", "", "the URL of the webhook to post the image to")
 	var useSlack = flag.Bool("slack", false, "post to Slack")
 	var useMattermost = flag.Bool("mattermost", false, "post to Mattermost")
-	var mattermostChannel = flag.String("channel", "town-square", "which channel to post to (only available when using Mattermost)")
-	var mattermostUsername = flag.String("username", "xkdc-image-bot", "which username to post as (only available when using Mattermost)")
+	var mattermostChannel = flag.String("channel", "town-square", "(optional) which channel to post to; only available when using Mattermost")
+	var mattermostUsername = flag.String("username", "xkdc-image-bot", "(optional) which username to post as; only available when using Mattermost")
 
 	// parse all given flags and do some basic validity checks on them
 	flag.Parse()
 	if *help {
 		fmt.Print("Usage:\n\n")
 		flag.PrintDefaults()
-		os.Exit(0)
 	}
 	CheckValidityOfFlags(*webhookURL, *useMattermost, *useSlack)
 
@@ -82,17 +81,14 @@ func ParseXKCD() string {
 	// the URL and endpoint are fixed for XKCD
 	response, err := req.Get("https://c.xkcd.com/random/comic/")
 	if err != nil {
-		fmt.Println("Something went wrong while getting the random comic!")
-		fmt.Println(err)
-		os.Exit(1)
+		PrintErrorAndExit("getting the random comic", err)
 	}
 	resp := response.String()
 
 	// parse the image URL from the returned HTML body
 	re := regexp.MustCompile("Image URL.* (https://.*png)")
 	imageURL := re.FindStringSubmatch(string(resp))[1]
-	fmt.Print("Posting this image: ")
-	fmt.Println(imageURL)
+	fmt.Println("[I] Posting this image: ", imageURL)
 
 	return imageURL
 }
@@ -110,9 +106,7 @@ func BuildPayloadSlack(imgURL string) string {
 
 	payloadJson, err := json.Marshal(slackPayload)
 	if err != nil {
-		fmt.Println("[E] Error marshalling payload!")
-		fmt.Println(err)
-		os.Exit(1)
+		PrintErrorAndExit("marshalling payload", err)
 	}
 	payload := string(payloadJson)
 
@@ -134,11 +128,18 @@ func BuildPayloadMattermost(imgURL string, channel string, username string) stri
 
 	payloadJson, err := json.Marshal(mattermostPayload)
 	if err != nil {
-		fmt.Println("[E] Error marshalling payload!")
+		PrintErrorAndExit("marshalling payload", err)
 	}
 	payload := string(payloadJson)
 
 	return payload
+}
+
+// PrintErrorAndExit takes a custom message and error, prints it and then exits the program
+func PrintErrorAndExit(customMessage string, errorMessage error) {
+	fmt.Println("[E] Error ", customMessage, ":")
+	fmt.Println(errorMessage)
+	os.Exit(1)
 }
 
 // PostToApp builds the payload with the image URL an posts it to the specified app
@@ -157,12 +158,12 @@ func PostToApp(imgURL string, webhookURL string, useMattermost bool, mattermostU
 		"Accept": "application/json",
 	}
 
+	// post the image to the app and check if there was an error
+	// does not, however, check the HTTP status code!
 	response, err := req.Post(webhookURL, header, payload)
 	if response != nil {
-		fmt.Print("[I] Response from server: ")
-		fmt.Println(response)
+		fmt.Println("[I] Response from server: ", response)
 	} else {
-		fmt.Println("[E] There was an error posting the payload:")
-		fmt.Println(err)
+		PrintErrorAndExit("posting the payload", err)
 	}
 }
