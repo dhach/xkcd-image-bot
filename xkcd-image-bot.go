@@ -136,11 +136,12 @@ func BuildPayloadMattermost(imgURL string, channel string, username string, mess
 func BuildMessageString(imgURL string, message string) string {
 	var text strings.Builder
 	if message != "" {
-		text.WriteString(message)
+		// fix newline errors by replacing escaped versions of the string with an actual "\ + n"
+		messageEscaped := strings.Replace(message, `\n`, "\n", -1)
+		text.WriteString(messageEscaped)
 		text.WriteString("\n")
 	}
 	text.WriteString(imgURL)
-
 	return text.String()
 }
 
