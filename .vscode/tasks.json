@@ -13,6 +13,14 @@
             }
         },
         {
+            "label": "vet",
+            "command": "go vet",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "build",
             "command": "go build",
             "group": {
