@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"regexp"
@@ -38,13 +39,18 @@ func getXKCDImageLink() (imageURL string) {
 	// the URL and endpoint are fixed for XKCD
 	response, err := req.Get("https://c.xkcd.com/random/comic/")
 	if err != nil {
-		PrintErrorAndExit("Error getting the random comic", err)
+		printErrorAndExit(err)
 	}
 	resp := response.String()
 
 	// parse the image URL from the returned HTML body
-	re := regexp.MustCompile("Image URL.* (https://.*png)")
-	imageURL = re.FindStringSubmatch(string(resp))[1]
+	re := regexp.MustCompile(`Image URL \(for hotlinking/embedding\): (https://.*png)`)
+	regexMatch := re.FindStringSubmatch(resp)
+	if regexMatch == nil {
+		err := errors.New("No image has been found")
+		printErrorAndExit(err)
+	}
+	imageURL = regexMatch[1]
 
 	return
 }
@@ -69,7 +75,7 @@ func buildPayload(imgURL string, message string) (payload string) {
 
 	payloadJSON, err := json.Marshal(payloadStruct)
 	if err != nil {
-		PrintErrorAndExit("marshalling payload", err)
+		printErrorAndExit(err)
 	}
 	payload = string(payloadJSON)
 
@@ -88,6 +94,6 @@ func postToWebhook(webhookURL string, payload string) {
 	// does not, however, check the HTTP status code!
 	_, err := req.Post(webhookURL, header, payload)
 	if err != nil {
-		PrintErrorAndExit("posting the payload", err)
+		printErrorAndExit(err)
 	}
 }
