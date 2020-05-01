@@ -44,7 +44,7 @@ jobs:
 
       - name: create tarball
         run: |
-          tar -czf xkcd-image-bot_${{ env.ARCH }}.tar.gz autopull
+          tar -czf xkcd-image-bot_${{ env.ARCH }}.tar.gz xkcd-image-bot
 
       - name: Release
         uses: softprops/action-gh-release@v1
