@@ -12,7 +12,7 @@ jobs:
       matrix:
         go: [ '1.13', '1.14' ]
 
-    name: Go ${{ matrix.go }} on ${{ matrix.os }}
+    name: Go ${{ matrix.go }}
     steps:
       - name: Setup go
         uses: actions/setup-go@v1
