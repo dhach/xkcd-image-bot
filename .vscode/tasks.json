@@ -1,40 +1,75 @@
 {
     "version": "2.0.0",
     "type": "shell",
-    "echoCommand": true,
+    "command": "go",
     "cwd": "${workspaceFolder}",
     "tasks": [
         {
-            "label": "rungo",
-            "command": "go run ${file}",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "label": "build",
+            "args": [
+                "build",
+                "-o",
+                "build/xkcd-image-bot",
+                "cmd/main.go"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "run",
+            "args": [
+                "run",
+                "build/main"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
             }
         },
         {
             "label": "vet",
-            "command": "go vet",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "build",
-            "command": "go build",
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "args": [
+                "vet",
+                "./..."
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
             }
         },
         {
             "label": "test",
-            "command": "go test -run",
-            "group": {
-                "kind": "test",
-                "isDefault": true
+            "args": [
+                "test",
+                "./..."
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
             }
         }
-    ]
+    ],
 }

@@ -24,9 +24,9 @@ jobs:
       - name: get dependencies
         run: go get -d ./...
         
-      - name: vet, test, build
-        run: | 
-          go vet
-          go test
-          go build
+      - name: test
+        run: go test -cover ./...
+
+      - name: build
+        run: go build ./...
 
