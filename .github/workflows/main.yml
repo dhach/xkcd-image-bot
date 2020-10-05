@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        go: [ '1.13', '1.14', '1.15' ]
+        go: [ '1.14', '1.15' ]
 
     name: Go ${{ matrix.go }}
     steps:
@@ -24,9 +24,8 @@ jobs:
       - name: get dependencies
         run: go get -d ./...
         
-      - name: vet, test, build
-        run: | 
-          go vet
-          go test
-          go build
+      - name: test
+        run: go test -cover ./...
 
+      - name: build
+        run: go build -o xkcd-image-bot cmd/main.go
