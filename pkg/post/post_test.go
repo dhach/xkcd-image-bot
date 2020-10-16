@@ -11,7 +11,6 @@ import (
 )
 
 func Test_ToWebhook(t *testing.T) {
-
 	type args struct {
 		webhookURL    string
 		imgURL        string
@@ -47,7 +46,6 @@ func TestMocked_ToWebhook(t *testing.T) {
 	}{
 		{"regular", "https://imgs.xkcd.com/comics/hack.png", "foo", false},
 		{"whitespace", "https://imgs.xkcd.com/comics/hack.png", " ", false},
-		// {"empty_message", "https://imgs.xkcd.com/comics/hack.png", "", false},  // TODO: find out, why this test does not succeed  ("{\"text\":\"https://imgs.xkcd.com/comics/hack.png\"}")
 	}
 
 	for _, tt := range tests {
