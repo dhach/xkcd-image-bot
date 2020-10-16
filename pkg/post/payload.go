@@ -5,11 +5,13 @@ import (
 	"strings"
 )
 
+// JSONPayload defines the structure of the final payload sent to the webhook
+type JSONPayload struct {
+	PostText string `json:"text"`
+}
+
 // buildPayload builds the payload from the custom message and the image URL
 func buildPayload(imgURL string, message string) (payload []byte, err error) {
-	type JSONPayload struct {
-		PostText string `json:"text"`
-	}
 	var textStringBuilder strings.Builder
 	if message != "" {
 		// fix newline errors by replacing escaped versions of the string with an actual "\n"
