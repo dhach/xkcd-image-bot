@@ -16,20 +16,18 @@ func Test_ToWebhook(t *testing.T) {
 		imgURL        string
 		customMessage string
 	}
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		args    args
 		wantErr bool
 	}{
-		{
-			name:    "invalid_webhook_URL",
+		"invalid_webhook_URL": {
 			args:    args{"http://invalid", "https://imgs.xkcd.com/comics/hack.png", "foo"},
 			wantErr: true,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for testName, tt := range tests {
+		t.Run(testName, func(t *testing.T) {
 			if err := ToWebhook(tt.args.webhookURL, tt.args.imgURL, tt.args.customMessage); (err != nil) != tt.wantErr {
 				t.Errorf("ToWebhook() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -38,18 +36,17 @@ func Test_ToWebhook(t *testing.T) {
 }
 
 func TestMocked_ToWebhook(t *testing.T) {
-	tests := []struct {
-		name             string
+	tests := map[string]struct {
 		argImgURL        string
 		argCustomMessage string
 		wantErr          bool
 	}{
-		{"regular", "https://imgs.xkcd.com/comics/hack.png", "foo", false},
-		{"whitespace", "https://imgs.xkcd.com/comics/hack.png", " ", false},
+		"regular":    {"https://imgs.xkcd.com/comics/hack.png", "foo", false},
+		"whitespace": {"https://imgs.xkcd.com/comics/hack.png", " ", false},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for testName, tt := range tests {
+		t.Run(testName, func(t *testing.T) {
 			mockedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				reqBody, _ := ioutil.ReadAll(r.Body)
 				wantPayload := fmt.Sprintf(`{"text":"%s\n%s"}`, tt.argCustomMessage, tt.argImgURL)
