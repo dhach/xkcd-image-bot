@@ -12,24 +12,21 @@ func Test_buildPayload(t *testing.T) {
 		imgURL  string
 		message string
 	}
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		args    args
 		wantErr bool
 	}{
-		{
-			name:    "regular",
+		"regular": {
 			args:    args{"https://imgs.xkcd.com/comics/hack.png", "hello!"},
 			wantErr: false,
 		},
-		{
-			name:    "empty",
+		"empty": {
 			args:    args{" ", " "},
 			wantErr: false,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for testName, tt := range tests {
+		t.Run(testName, func(t *testing.T) {
 			wantPayload, _ := json.Marshal(JSONPayload{PostText: fmt.Sprintf("%s\n%s", tt.args.message, tt.args.imgURL)})
 
 			gotPayload, err := buildPayload(tt.args.imgURL, tt.args.message)
