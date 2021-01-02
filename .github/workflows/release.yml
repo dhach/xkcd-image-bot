@@ -35,12 +35,12 @@ jobs:
       - name: set arch to darwin
         if: startsWith(matrix.os, 'macos')
         run: |
-          echo "::set-env name=ARCH::darwin-amd64"
+          echo "ARCH=darwin-amd64" >> $GITHUB_ENV
 
       - name: set arch to linux
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          echo "::set-env name=ARCH::linux-amd64"
+          echo "ARCH=linux-amd64" >> $GITHUB_ENV
 
       - name: create tarball
         run: |
