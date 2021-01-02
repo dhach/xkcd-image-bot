@@ -35,4 +35,4 @@ If you find any bugs, please report them via Github.
 
 ## License
 
-[MIT License](LICENSE)
+[GPL-3.0](LICENSE)
