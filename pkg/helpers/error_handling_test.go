@@ -1,4 +1,4 @@
-package main
+package helpers
 
 import (
 	"errors"
@@ -9,13 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_printErrorAndExit(t *testing.T) {
+func Test_PrintErrorAndExit(t *testing.T) {
 	genericError := errors.New("Generic error")
 	if os.Getenv("TEST_CRASH") == "1" {
-		printErrorAndExit(genericError)
+		PrintErrorAndExit(genericError)
 	}
 
-	cmd := exec.Command(os.Args[0], "-test.run=Test_printErrorAndExit")
+	cmd := exec.Command(os.Args[0], "-test.run=Test_PrintErrorAndExit")
 	cmd.Env = append(os.Environ(), "TEST_CRASH=1")
 	err := cmd.Run()
 	assert.EqualError(t, err, "exit status 1")

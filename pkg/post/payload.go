@@ -14,7 +14,7 @@ type JSONPayload struct {
 func buildPayload(imgURL string, message string) (payload []byte, err error) {
 	var textStringBuilder strings.Builder
 	if message != "" {
-		// fix newline errors by replacing escaped versions of the string with an actual "\n"
+		// fix newline errors by replacing runes with an actual string "\n"
 		messageEscaped := strings.Replace(message, `\n`, "\n", -1)
 		textStringBuilder.WriteString(messageEscaped)
 		textStringBuilder.WriteString("\n")
