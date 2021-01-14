@@ -2,7 +2,7 @@
 
 Build status:  ![Go](https://github.com/dhach/xkcd-image-bot/workflows/Go/badge.svg)
 
-A program to post a random XKCD image to Slack or Slack-compatible webhooks (currently tested and verfified: Mattermost, Discord).
+A program to post a random XKCD image to Slack or Slack-compatible webhooks (currently tested and verified: Mattermost, Discord).
 
 Written for personal use and for learing Go.
 
