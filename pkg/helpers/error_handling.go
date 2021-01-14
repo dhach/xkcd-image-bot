@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// PrintErrorAnExit prints an error an then exists the programm
+// PrintErrorAndExit prints an error an then exists the programm
 // The exit code will always be 1
 func PrintErrorAndExit(errorMessage error) {
 	fmt.Println("[E] There was an error:")
